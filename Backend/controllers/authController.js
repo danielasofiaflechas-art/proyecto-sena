@@ -1,7 +1,7 @@
 const db = require('../config/db');
 
 exports.login = async (req, res) => {
-    // ESTO DEBE APARECER EN TU CONSOLA NEGRA
+    
     console.log("=== INTENTO DE LOGIN RECIBIDO ===");
     console.log("Datos recibidos:", req.body);
 

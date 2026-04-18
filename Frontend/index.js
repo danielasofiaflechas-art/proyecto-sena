@@ -11,12 +11,10 @@ app.get('/', (req, res) => {
     res.render('login', { mensaje: "Bienvenido a TITANES F.C." });
 });
 
-// CAMBIA '/dashboard' POR '/menu' PARA QUE COINCIDA CON TU LOGIN
 app.get('/menu', (req, res) => {
     res.render('menu'); 
 });
 
-// (Opcional) Deja esta también por si acaso
 app.get('/dashboard', (req, res) => {
     res.render('menu'); 
 });
