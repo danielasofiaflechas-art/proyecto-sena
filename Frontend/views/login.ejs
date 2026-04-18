@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Login | Titanes F.C.</title>
+    <style>
+        :root { --rojo: #e63946; --azul: #1d3557; }
+        body { 
+            background: linear-gradient(rgba(29,83,87,0.7), rgba(29,83,87,0.7)), url('https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=1000&q=80');
+            background-size: cover; height: 100vh; display: flex; align-items: center; justify-content: center; font-family: sans-serif; margin: 0;
+        }
+        .card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); width: 320px; text-align: center; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        .btn { width: 100%; padding: 12px; background: var(--rojo); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        #err { color: var(--rojo); font-size: 0.8rem; display: none; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1 style="color:var(--azul); margin:0;">🏆 TITANES</h1>
+        <p>Panel Administrativo</p>
+        <form id="formL">
+            <input type="email" id="email" placeholder="Correo" required>
+            <input type="password" id="pass" placeholder="Contraseña" required>
+            <button type="submit" class="btn">ENTRAR</button>
+        </form>
+        <div id="err"></div>
+    </div>
+    <script>
+        document.getElementById('formL').onsubmit = async (e) => {
+            e.preventDefault();
+            const err = document.getElementById('err');
+            try {
+                const res = await fetch('http://localhost:3000/api/usuarios/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: document.getElementById('email').value, password: document.getElementById('pass').value })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    localStorage.setItem('usuario', JSON.stringify(data.user));
+                    window.location.href = '/menu';
+                } else {
+                    err.style.display = 'block';
+                    err.innerText = data.error;
+                }
+            } catch (f) {
+                err.style.display = 'block';
+                err.innerText = "Error: El backend está apagado";
+            }
+        };
+    </script>
+</body>
+</html>

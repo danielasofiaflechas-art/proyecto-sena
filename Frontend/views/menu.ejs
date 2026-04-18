@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin | TITANES F.C.</title>
+    <style>
+        :root { --rojo: #e63946; --azul: #1d3557; --fondo: #f8f9fa; --blanco: #ffffff; }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--fondo); display: flex; }
+        
+        /* Sidebar */
+        .sidebar { width: 250px; background: var(--azul); color: white; height: 100vh; position: fixed; padding: 20px; box-shadow: 4px 0 10px rgba(0,0,0,0.1); }
+        .sidebar h2 { text-align: center; color: var(--rojo); letter-spacing: 2px; }
+        .sidebar button { width: 100%; padding: 12px; margin-bottom: 10px; background: rgba(255,255,255,0.1); border: none; color: white; border-radius: 8px; text-align: left; cursor: pointer; transition: 0.3s; font-weight: 600; }
+        .sidebar button:hover { background: var(--rojo); transform: translateX(5px); }
+        
+        /* Contenido */
+        .content { margin-left: 290px; padding: 40px; width: 100%; }
+        .header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        
+        /* Formularios y Tablas */
+        .card-form { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); margin-bottom: 30px; border-top: 5px solid var(--rojo); animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        input, select { padding: 10px; margin: 5px; border: 1px solid #ddd; border-radius: 5px; }
+        .tabla { width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; }
+        .tabla th { background: #eee; padding: 15px; text-align: left; color: var(--azul); }
+        .tabla td { padding: 15px; border-bottom: 1px solid #f0f0f0; }
+        
+        .btn-add { background: var(--rojo); color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .btn-del { color: var(--rojo); cursor: pointer; font-size: 1.2rem; background: none; border: none; }
+        .badge-pago { background: #d4edda; color: #155724; padding: 5px 10px; border-radius: 15px; font-size: 0.8rem; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>🏆 TITANES</h2>
+        <p style="text-align:center; font-size: 0.8rem; opacity: 0.7;">Panel Administrativo</p>
+        <hr style="opacity: 0.2; margin: 20px 0;">
+        <button onclick="cargar('jugadores')">👥 Jugadores</button>
+        <button onclick="cargar('entrenadores')">📋 Entrenadores</button>
+        <button onclick="cargar('partidos')">⚽ Partidos</button>
+        <button onclick="cargar('pagos')">💰 Paz y Salvo</button>
+        <button onclick="location.href='/'" style="margin-top:50px; background:#444;">🚪 Cerrar Sesión</button>
+    </div>
+
+    <div class="content">
+        <div class="header-flex">
+            <h1 id="titulo" style="color: var(--azul);">Bienvenida Daniela</h1>
+            <div id="btn-nuevo-lugar"></div>
+        </div>
+        <div id="area-formulario"></div>
+        <div id="area-tabla">
+            <p>Selecciona una opción del menú para comenzar.</p>
+        </div>
+    </div>
+
+    <script>
+        const API = "http://localhost:3000/api";
+
+        // --- CONTROLADOR PRINCIPAL ---
+        function cargar(modulo) {
+            document.getElementById('area-formulario').innerHTML = "";
+            const btnLugar = document.getElementById('btn-nuevo-lugar');
+            
+            if(modulo === 'jugadores') {
+                document.getElementById('titulo').innerText = 'Gestión de Jugadores';
+                btnLugar.innerHTML = '<button class="btn-add" onclick="formJ()">+ Nuevo Jugador</button>';
+                listarJ();
+            } else if(modulo === 'entrenadores') {
+                document.getElementById('titulo').innerText = 'Cuerpo Técnico';
+                btnLugar.innerHTML = '<button class="btn-add" onclick="formE()">+ Nuevo Entrenador</button>';
+                listarE();
+            } else if(modulo === 'partidos') {
+                document.getElementById('titulo').innerText = 'Calendario de Juegos';
+                btnLugar.innerHTML = '<button class="btn-add" onclick="formP()">+ Programar Partido</button>';
+                listarP();
+            } else if(modulo === 'pagos') {
+                document.getElementById('titulo').innerText = 'Control de Pagos (Paz y Salvo)';
+                btnLugar.innerHTML = '<button class="btn-add" onclick="formPago()">+ Registrar Pago</button>';
+                listarPagos();
+            }
+        }
+
+        // --- LISTADOS ---
+        async function listarJ() {
+            const res = await fetch(`${API}/usuarios/todos`);
+            const data = await res.json();
+            const jugadores = data.filter(u => u.rol === 'jugador');
+            let h = '<table class="tabla"><tr><th>Nombre</th><th>Email</th><th>Acción</th></tr>';
+            jugadores.forEach(j => {
+                h += `<tr><td>${j.nombre}</td><td>${j.email}</td><td><button class="btn-del" onclick="borrar(${j.id}, 'jugadores')">🗑️</button></td></tr>`;
+            });
+            document.getElementById('area-tabla').innerHTML = h + '</table>';
+        }
+
+        async function listarE() {
+            const res = await fetch(`${API}/entrenadores/todos`);
+            const data = await res.json();
+            let h = '<table class="tabla"><tr><th>Nombre</th><th>Especialidad</th><th>Experiencia</th><th>Acción</th></tr>';
+            data.forEach(e => {
+                h += `<tr><td>${e.nombre}</td><td>${e.especialidad}</td><td>${e.experiencia_años} años</td><td><button class="btn-del" onclick="borrar(${e.usuario_id}, 'entrenadores')">🗑️</button></td></tr>`;
+            });
+            document.getElementById('area-tabla').innerHTML = h + '</table>';
+        }
+
+        async function listarP() {
+            const res = await fetch(`${API}/partidos/todos`);
+            const data = await res.json();
+            let h = '<table class="tabla"><tr><th>Rival</th><th>Fecha / Hora</th><th>Lugar</th><th>Categoría</th></tr>';
+            data.forEach(p => {
+                h += `<tr><td>Vs ${p.rival}</td><td>${new Date(p.fecha).toLocaleString()}</td><td>${p.lugar}</td><td>${p.categoria || 'N/A'}</td></tr>`;
+            });
+            document.getElementById('area-tabla').innerHTML = h + '</table>';
+        }
+
+        async function listarPagos() {
+            const res = await fetch(`${API}/pagos/todos`);
+            const data = await res.json();
+            let h = '<table class="tabla"><tr><th>Jugador</th><th>Monto</th><th>Mes Correspondiente</th><th>Fecha Registro</th></tr>';
+            data.forEach(p => {
+                h += `<tr><td><strong>${p.nombre}</strong></td><td>$${p.monto}</td><td><span class="badge-pago">${p.mes_correspondiente}</span></td><td>${new Date(p.fecha_pago).toLocaleDateString()}</td></tr>`;
+            });
+            document.getElementById('area-tabla').innerHTML = h + '</table>';
+        }
+
+        // --- ACCIONES (ELIMINAR) ---
+        async function borrar(id, mod) {
+            if(confirm('¿Segura que deseas eliminar este registro?')) {
+                await fetch(`${API}/usuarios/eliminar/${id}`, { method: 'DELETE' });
+                cargar(mod);
+            }
+        }
+
+        // --- FORMULARIOS (CREAR) ---
+        function formJ() {
+            document.getElementById('area-formulario').innerHTML = `
+                <div class="card-form">
+                    <h3>Registrar Nuevo Jugador</h3>
+                    <input type="text" id="jn" placeholder="Nombre Completo">
+                    <input type="email" id="je" placeholder="Correo Electrónico">
+                    <input type="password" id="jp" placeholder="Contraseña">
+                    <button onclick="saveJ()" class="btn-add">Guardar</button>
+                </div>`;
+        }
+
+        async function saveJ() {
+            const body = { nombre: document.getElementById('jn').value, email: document.getElementById('je').value, password: document.getElementById('jp').value, rol: 'jugador' };
+            await fetch(`${API}/usuarios/registrar`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+            cargar('jugadores');
+        }
+
+        function formE() {
+            document.getElementById('area-formulario').innerHTML = `
+                <div class="card-form">
+                    <h3>Registrar Nuevo Entrenador</h3>
+                    <input type="text" id="en" placeholder="Nombre">
+                    <input type="email" id="ee" placeholder="Email">
+                    <input type="text" id="es" placeholder="Especialidad (Ej: Porteros)">
+                    <input type="password" id="ep" placeholder="Contraseña">
+                    <button onclick="saveE()" class="btn-add">Registrar Entrenador</button>
+                </div>`;
+        }
+
+        async function saveE() {
+            const body = { nombre: document.getElementById('en').value, email: document.getElementById('ee').value, password: document.getElementById('ep').value, especialidad: document.getElementById('es').value, experiencia_años: 1 };
+            await fetch(`${API}/entrenadores/registrar-completo`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+            cargar('entrenadores');
+        }
+
+        function formP() {
+            document.getElementById('area-formulario').innerHTML = `
+                <div class="card-form">
+                    <h3>Programar Nuevo Partido</h3>
+                    <input type="text" id="pr" placeholder="Nombre del Rival">
+                    <input type="datetime-local" id="pf">
+                    <input type="text" id="pl" placeholder="Cancha / Lugar">
+                    <input type="text" id="pc" placeholder="Categoría">
+                    <button onclick="saveP()" class="btn-add">Publicar Partido</button>
+                </div>`;
+        }
+
+        async function saveP() {
+            const body = { rival: document.getElementById('pr').value, fecha: document.getElementById('pf').value, lugar: document.getElementById('pl').value, categoria: document.getElementById('pc').value };
+            await fetch(`${API}/partidos/registrar`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+            cargar('partidos');
+        }
+
+        async function formPago() {
+            const res = await fetch(`${API}/usuarios/todos`);
+            const data = await res.json();
+            const jugadores = data.filter(u => u.rol === 'jugador');
+            
+            document.getElementById('area-formulario').innerHTML = `
+                <div class="card-form">
+                    <h3>Registrar Pago de Mensualidad</h3>
+                    <select id="pju">
+                        <option value="">Seleccione Jugador...</option>
+                        ${jugadores.map(j => `<option value="${j.id}">${j.nombre}</option>`).join('')}
+                    </select>
+                    <input type="number" id="pm" placeholder="Monto $">
+                    <select id="pme">
+                        <option>Enero</option><option>Febrero</option><option>Marzo</option><option>Abril</option>
+                        <option>Mayo</option><option>Junio</option><option>Julio</option><option>Agosto</option>
+                        <option>Septiembre</option><option>Octubre</option><option>Noviembre</option><option>Diciembre</option>
+                    </select>
+                    <button onclick="savePago()" class="btn-add">Confirmar Pago</button>
+                </div>`;
+        }
+
+        async function savePago() {
+            const body = { 
+                jugador_id: document.getElementById('pju').value, 
+                monto: document.getElementById('pm').value, 
+                mes_correspondiente: document.getElementById('pme').value 
+            };
+            await fetch(`${API}/pagos/registrar`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+            cargar('pagos');
+        }
+
+
+    </script>
+</body>
+</html>
